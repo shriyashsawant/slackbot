@@ -25,6 +25,9 @@ public class JenkinsService {
 
     @Value("${slack.bot.token}")
     private String SLACK_BOT_TOKEN;
+
+    private final String SLACK_SIGNING_SECRET = System.getenv("SLACK_SIGNING_SECRET");
+
     
 
 
