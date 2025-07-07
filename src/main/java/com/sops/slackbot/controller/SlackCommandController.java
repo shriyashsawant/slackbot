@@ -20,31 +20,41 @@ public class SlackCommandController {
         String text = params.get("text");              // optional args
         String channelId = params.get("channel_id");   // to respond back if needed
 
-        switch (command) {
-            case "/check_health":
-                jenkinsService.triggerJobAndNotify("check_health", channelId, "⏳ Checking server health...");
-                break;
+        // Run the actual Jenkins logic in a background thread
+        new Thread(() -> {
+            switch (command) {
+                case "/check_health":
+                    jenkinsService.triggerJobAndNotify("check_health", channelId, "⏳ Checking server health...");
+                    break;
 
-            case "/logs":
-                if (text != null && text.equalsIgnoreCase("user-service")) {
-                    jenkinsService.triggerJobAndNotify("logs_user_service", channelId, "📄 Fetching logs for user-service...");
-                } else {
-                    return ResponseEntity.ok("⚠️ Please specify a valid service (e.g., `/logs user-service`).");
-                }
-                break;
+                case "/logs":
+                    if (text != null && text.equalsIgnoreCase("user-service")) {
+                        jenkinsService.triggerJobAndNotify("logs_user_service", channelId, "📄 Fetching logs for user-service...");
+                    } else {
+                        try {
+                            jenkinsService.sendSlackReply(channelId, "⚠️ Please specify a valid service (e.g., `/logs user-service`).");
+                        } catch (Exception ignored) {}
+                    }
+                    break;
 
-            case "/restart":
-                if (text != null && text.equalsIgnoreCase("frontend")) {
-                    jenkinsService.triggerJobAndNotify("restart_frontend", channelId, "♻️ Restarting frontend...");
-                } else {
-                    return ResponseEntity.ok("⚠️ Please specify what to restart (e.g., `/restart frontend`).");
-                }
-                break;
+                case "/restart":
+                    if (text != null && text.equalsIgnoreCase("frontend")) {
+                        jenkinsService.triggerJobAndNotify("restart_frontend", channelId, "♻️ Restarting frontend...");
+                    } else {
+                        try {
+                            jenkinsService.sendSlackReply(channelId, "⚠️ Please specify what to restart (e.g., `/restart frontend`).");
+                        } catch (Exception ignored) {}
+                    }
+                    break;
 
-            default:
-                return ResponseEntity.ok("❓ Unknown command.");
-        }
+                default:
+                    try {
+                        jenkinsService.sendSlackReply(channelId, "❓ Unknown command.");
+                    } catch (Exception ignored) {}
+            }
+        }).start();
 
+        // Immediate 200 OK response to Slack
         return ResponseEntity.ok("✅ Command received. Processing...");
     }
 }

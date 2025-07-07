@@ -26,7 +26,6 @@ public class JenkinsService {
     @Value("${slack.bot.token}")
     private String SLACK_BOT_TOKEN;
 
-    private final String SLACK_SIGNING_SECRET = System.getenv("SLACK_SIGNING_SECRET");
 
     
 
@@ -55,7 +54,7 @@ public class JenkinsService {
         conn.getResponseCode(); // Trigger job
     }
 
-    private void sendSlackReply(String channel, String message) throws Exception {
+   public void sendSlackReply(String channel, String message) throws Exception {
         URL url = new URL("https://slack.com/api/chat.postMessage");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
