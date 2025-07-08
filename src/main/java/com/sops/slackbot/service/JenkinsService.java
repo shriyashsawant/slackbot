@@ -3,6 +3,8 @@ package com.sops.slackbot.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -55,20 +57,38 @@ public class JenkinsService {
     }
 
    public void sendSlackReply(String channel, String message) throws Exception {
-        URL url = new URL("https://slack.com/api/chat.postMessage");
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Authorization", "Bearer " + SLACK_BOT_TOKEN);
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setDoOutput(true);
+    URL url = new URL("https://slack.com/api/chat.postMessage");
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.setRequestMethod("POST");
+    conn.setRequestProperty("Authorization", "Bearer " + SLACK_BOT_TOKEN);
+    conn.setRequestProperty("Content-Type", "application/json");
+    conn.setDoOutput(true);
 
-        String jsonPayload = String.format("{\"channel\":\"%s\",\"text\":\"%s\"}", channel, message);
+    String jsonPayload = String.format("{\"channel\":\"%s\",\"text\":\"%s\"}", channel, message);
 
-        try (OutputStream os = conn.getOutputStream()) {
-            byte[] input = jsonPayload.getBytes("utf-8");
-            os.write(input, 0, input.length);
-        }
+    System.out.println("🟡 Posting to Slack...");
+    System.out.println("Channel: " + channel);
+    System.out.println("Payload: " + jsonPayload);
 
-        conn.getResponseCode();
+    try (OutputStream os = conn.getOutputStream()) {
+        byte[] input = jsonPayload.getBytes("utf-8");
+        os.write(input, 0, input.length);
     }
+
+    int responseCode = conn.getResponseCode();
+    System.out.println("🔵 Slack API response code: " + responseCode);
+
+    try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+        String inputLine;
+        StringBuilder content = new StringBuilder();
+        while ((inputLine = in.readLine()) != null) {
+            content.append(inputLine);
+        }
+        System.out.println("🟢 Slack API response body: " + content.toString());
+    } catch (Exception ex) {
+        System.out.println("🔴 Failed to read Slack response: " + ex.getMessage());
+        }
+    }
+
 }
+
