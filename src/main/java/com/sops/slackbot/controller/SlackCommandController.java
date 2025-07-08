@@ -21,7 +21,7 @@ public ResponseEntity<String> handleSlashCommand(@RequestParam Map<String, Strin
     String channelId = params.get("channel_id");
 
     // Handle /status separately (does not need to run inside thread)
-    if ("/status".equals(command)) {
+    if ("/stat".equals(command)) {
         if (text != null && !text.isEmpty()) {
             new Thread(() -> {
                 String jobResult = jenkinsService.getLastBuildStatus(text.trim());
