@@ -89,6 +89,43 @@ public class JenkinsService {
         System.out.println("🔴 Failed to read Slack response: " + ex.getMessage());
         }
     }
+    
+    public String getLastBuildStatus(String jobName) {
+    try {
+        String apiUrl = JENKINS_URL + "/job/" + jobName + "/lastBuild/api/json";
+        HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
+
+        String auth = JENKINS_USER + ":" + JENKINS_API_TOKEN;
+        String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
+        conn.setRequestProperty("Authorization", "Basic " + encodedAuth);
+        conn.setRequestMethod("GET");
+
+        int responseCode = conn.getResponseCode();
+        if (responseCode != 200) {
+            return "Failed to fetch build status (HTTP " + responseCode + ")";
+        }
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        String inputLine;
+        StringBuilder json = new StringBuilder();
+        while ((inputLine = in.readLine()) != null) {
+            json.append(inputLine);
+        }
+        in.close();
+
+        String jsonStr = json.toString();
+        if (jsonStr.contains("\"result\":\"")) {
+            return jsonStr.split("\"result\":\"")[1].split("\"")[0];
+        } else {
+            return "Build result not found";
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return "Error: " + e.getMessage();
+    }
+}
+
 
 }
 
