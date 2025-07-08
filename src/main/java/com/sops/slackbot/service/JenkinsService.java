@@ -45,7 +45,7 @@ public class JenkinsService {
     }
 
     private void triggerJenkinsJob(String jobName) throws Exception {
-        String jobUrl = JENKINS_URL + "/job/" + jobName + "/build?token=" + JENKINS_JOB_TRIGGER_TOKEN;
+        String jobUrl = JENKINS_URL + "/job/" + jobName + "/build?token=" + jobName;
         HttpURLConnection conn = (HttpURLConnection) new URL(jobUrl).openConnection();
         conn.setRequestMethod("POST");
 
@@ -89,7 +89,7 @@ public class JenkinsService {
         System.out.println("🔴 Failed to read Slack response: " + ex.getMessage());
         }
     }
-    
+
     public String getLastBuildStatus(String jobName) {
     try {
         String apiUrl = JENKINS_URL + "/job/" + jobName + "/lastBuild/api/json";
